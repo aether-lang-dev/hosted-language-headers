@@ -2,12 +2,13 @@
 // main()) to a runnable binary, proving a leaf target compiles + links.
 // Its greeting() is also imported by the app node. Readiness Test 2's leaf.
 
-import build
+import bldr
 import aether
 
-main() {
-    b = build.start()
-    aether.program(b) {
-        source("greeter_main.ae")
+aeb(cap) {
+    bldr.build() {
+        aether.program() {
+            source("greeter_main.ae")
+        }
     }
 }

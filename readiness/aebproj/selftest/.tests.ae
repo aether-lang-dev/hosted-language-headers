@@ -1,8 +1,10 @@
-import build
+import bldr
 import aether
-main() {
-    b = build.start()
-    aether.program_test(b) {
-        source("selftest.ae")
+
+aeb(cap) {
+    bldr.build() {
+        aether.program_test() {
+            source("selftest.ae")
+        }
     }
 }
