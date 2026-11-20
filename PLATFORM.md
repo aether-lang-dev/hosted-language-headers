@@ -1,6 +1,6 @@
 # Platform of the headers on this branch
 
-This branch (`main`) carries headers captured from:
+The shared trees on `main` carry headers captured from:
 
 | Field | Value |
 |-------|-------|
@@ -44,8 +44,11 @@ This SUPERSEDES the earlier "make a branch per target" guidance. A branch
 per platform can't serve a **cross-build tool**, which needs every target
 available at once (it can't check out three branches). Overlay dirs give all
 targets simultaneously at a few-KB footprint (only the divergent configs), and
-the shared trees no longer ship a configured header at all (it comes only from
-the target overlay, so it can never be wrong-for-target).
+the shared `python/` tree no longer ships its configured header (`pyconfig.h`
+comes only from the target overlay, so it can never be wrong-for-target). The
+other shared trees still carry the Debian x86_64 configured header (`lua/luaconf.h`,
+`perl/config.h`, `ruby-arch/ruby/config.h`, `js/duk_config.h`), which is right
+only for that platform.
 
 Capturing a new target: run on a machine of that platform with the language's
 headers present, copy its real `pyconfig.h`/`config.h`/`luaconf.h` into

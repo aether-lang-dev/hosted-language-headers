@@ -1,54 +1,75 @@
 # hosted-language-headers
 
-Pre-captured C headers for the languages [Aether](https://github.com/aether-lang-org/aether)'s
-`contrib.host.*` bridges embed. Used by the
-[`aether-builder` Docker/Podman image](https://github.com/aether-lang-org/aether/tree/main/tools/docker)
-to avoid installing `python3-dev` / `liblua5.4-dev` / `libperl-dev`
-/ `ruby-dev` / `duktape-dev` in every image build.
+Captured C headers for the languages Aether's guest-language bridges embed
+(Python, Lua, Perl, Ruby, Duktape), plus per-target configured-header overlays
+(`targets/`) and a `readiness/` directory of small programs that prove a host
+can build and run those bridges (see `readiness/README.md`).
+
+## Who uses the headers today: nobody we can find
+
+Checked 2026-11-20 against Aether 0.931.0 and the sibling repositories in the
+family:
+
+- The [`aether-builder` image](https://github.com/aether-lang-dev/aether/tree/main/tools/docker)
+  stopped cloning this repository in Aether 0.210.0 (the captured `pyconfig.h`,
+  `luaconf.h` and `perl.h` are distro build products that name paths only the
+  matching `-dev` package supplies), and its `--with=<lang>` layers and `WITH_*`
+  build arguments were removed in 0.893.0.
+- The bridges themselves left Aether's `contrib/host/` (Lua in 0.880.0, Python
+  in 0.887.0, Duktape, Perl, Ruby, Tcl, TinyGo and the rest in 0.893.0) for
+  [aether-guest-languages](https://github.com/aether-lang-dev/aether-guest-languages).
+  Each bridge there carries its own small ABI header (`lua_abi.h`,
+  `python_abi.h`, `perl_abi.h`, `ruby_abi.h`, `duktape_abi.h`, `tcl_abi.h`)
+  declaring the few language types it uses, and `dlopen`s the interpreter at
+  run time, so a program that imports one builds without any of the trees here.
+- `aether-crossbuild` stages Lua and Duktape headers from the upstream release
+  tarballs (Lua 5.4.7, Duktape 2.7.0), not from this repository.
+
+The trees stay because the `targets/` overlays and the captured versions are a
+record of what each platform's configured headers look like, and nothing has
+been removed on the strength of the search above alone. If you find a consumer,
+say so here.
 
 ## Layout
 
 ```
-python/         Python 3.11 headers (Python.h + everything pulled by it)
-lua/            Lua 5.4 headers (lua.h, lauxlib.h, lualib.h, luaconf.h)
-perl/           Perl 5.36 CORE/ headers (EXTERN.h, perl.h, ~80 files)
+python/         Python 3.11.2 headers (Python.h and what it pulls in; no pyconfig.h:
+                that comes from targets/<triple>/python/)
+lua/            Lua 5.4.4 headers (lua.h, lauxlib.h, lualib.h, luaconf.h)
+perl/           Perl 5.36.0 CORE/ headers (EXTERN.h, perl.h, ~80 files)
 ruby/           Ruby 3.1.2 portable headers (ruby.h and tree)
 ruby-arch/      Ruby 3.1.2 platform-specific headers (ruby/config.h)
-js/             duktape 2.7.0 headers (duktape.h + duk_config.h)
+js/             Duktape 2.7.0 headers (duktape.h + duk_config.h)
+targets/        per-platform configured headers and, for FreeBSD, a full Ruby 3.4 tree
+readiness/      the probes; run them with `sh readiness/run.sh`
 ```
 
-Sizes (committed):
+Sizes (committed, `du -sh`):
 
 | Tree      | Size    |
 |-----------|---------|
-| python    | ~1.3 MB |
-| lua       | ~50 KB  |
-| perl      | ~10 MB  |
-| ruby      | ~2 MB   |
-| ruby-arch | ~1 MB   |
+| python    | ~1.2 MB |
+| lua       | ~56 KB  |
+| perl      | ~7.8 MB |
+| ruby      | ~1.9 MB |
+| ruby-arch | ~1.2 MB |
 | js        | ~200 KB |
-| **total** | **~14 MB** |
+| targets   | ~2.1 MB |
 
 ## Per-OS / per-arch
 
-This branch (`main`) carries the headers for **linux-x86_64-glibc**
-(captured from Debian 12 bookworm). See `PLATFORM.md` for the
-package-version snapshot and which files are platform-sensitive.
-
-When another target is needed (linux-arm64, linux-musl, macOS, …)
-make a new branch named after the target — `linux-arm64-glibc`,
-etc. — and populate from a machine running that platform. The
-configured `*config.h` files diverge per arch; the rest of each
-tree should be nearly identical, and the diff between branches
-documents the per-arch surface.
+The shared trees are linux-x86_64-glibc, captured from Debian 12 (bookworm).
+`PLATFORM.md` has the package versions and says which files are
+platform-sensitive. The files that differ per platform are kept per target
+triple under `targets/` (see `targets/README.md`), which replaced an earlier
+plan of one git branch per platform: a cross-build needs every target at once.
 
 ## Usage
 
-The Aether builder image clones this repo at build time and
-copies subtrees into `/opt/aether/include/<lang>/`. Consumers
-that don't use Docker can `git clone` this repo and point their
-toolchain at `--include-dir <path-to-this-repo>/python` (or
-whichever language).
+Clone this repository and point the toolchain at the tree you need, with a
+target overlay first when you are not building for Debian x86_64, for example
+`-Itargets/x86_64-macos/python -Ipython`. Whether a bridge needs it at all is
+the question the section above answers: those in aether-guest-languages do not.
 
 ## Licensing
 
@@ -94,29 +115,22 @@ cp -r "$RUBY_ARCHHDRDIR/." ruby-arch/
 
 # duktape
 cp /usr/include/duktape.h /usr/include/duk_config.h js/
+
+# the one configured header the shared tree does not keep
+mv python/pyconfig.h targets/x86_64-linux-gnu/python/
 ```
 
 ## What's NOT here
 
-- **Java**. `contrib.host.java` doesn't use C headers — it ships
-  a prebuilt `aether-sandbox.jar`. End users running a binary that
-  uses contrib.host.java need a JRE installed on their target host;
-  the JAR is built upstream with a JDK that supports the Foreign
-  Function & Memory API (Java 21+).
-- **Factor**. `contrib.host.factor` `#include`s **no** Factor
-  headers — the bridge is pure `dlopen`/`dlsym`, resolving the entire
-  Factor-side ABI (`factor_embed_eval` / `factor_embed_eval_free`)
-  against the forked `libfactor` at runtime. There is nothing to
-  capture here. Factor also isn't a stock distro library: the host
-  needs the embed-api fork
-  (`aether-lang-org/factor-language`)'s `libfactor` plus a
-  bootstrapped `factor.image` at runtime, supplied via
-  `$AETHER_FACTOR_SONAME` / `$AETHER_FACTOR_IMAGE` — not a build-time
-  `-dev` header package.
-- **TinyGo, Tcl, Go** — `contrib/host/{tinygo,tcl,go}` exist in
-  Aether but aren't currently driven by this header-capture flow.
-- **Runtime shared libraries** (`libpython3.so`, `libruby.so`,
-  `liblua5.4.so`, etc.) — those come from the user's target-host
-  package manager. The aether-builder image installs the
-  runtime-only variants when a `WITH_<LANG>=1` build arg is set;
-  the user's deployment host installs them separately.
+- **Java, Go, TinyGo, Factor, QuickJS, Racket.** No captured headers:
+  the Java bridge uses a prebuilt jar and a JRE, the Go and TinyGo bridges load
+  a library built with `go build -buildmode=c-shared` and include no Go header,
+  the Factor bridge is pure `dlopen` against the embed-api fork's `libfactor`
+  (`aether-lang-dev/factor-language`) and `factor.image`, and the QuickJS bridge
+  uses aether's `contrib.quickjs`. All of these bridges live in
+  aether-guest-languages.
+- **Tcl headers.** Tcl 8.6 has a bridge in aether-guest-languages
+  (`tcl/tcl_abi.h`), but no tree here: it was never captured.
+- **Runtime shared libraries** (`libpython3.so`, `libruby.so`, `liblua5.4.so`,
+  and so on). Those come from the machine's package manager, on the machine
+  that runs the program.

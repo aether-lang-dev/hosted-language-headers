@@ -1,5 +1,10 @@
 # Per-target configured headers
 
+> Written for cross-compiling aether's `contrib/host/<lang>` bridges, which
+> included the language headers. Those bridges now live in aether-guest-languages
+> and include their own small ABI headers instead, so nothing known uses these
+> overlays today; see `../README.md`.
+
 The top-level trees (`python/`, `ruby/`, `lua/`, `perl/`, `js/`) carry the
 **portable** header declarations — identical across every Unix-y target. But a
 few files are **configured per platform** at the language's `./configure` /
