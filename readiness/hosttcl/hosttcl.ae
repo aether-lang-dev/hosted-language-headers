@@ -1,18 +1,16 @@
-// Readiness — Aether hosting Tcl. Same proof as hostpy, for the tcl bridge:
-// COMPILES against the tcl C-bridge headers (in the toolchain container, from
-// the --with=tcl apt tcl-dev kit) and at runtime dlopens libtcl on the HOST.
-// Compile-in-container / execute-on-host, hosting a foreign language.
+// Readiness: an Aether program running Tcl. The tcl bridge comes from the
+// aether-guest-languages package (`import tcl`, see aether.toml). It is
+// compiled into this program and loads the machine's Tcl library at run
+// time, so the program builds with no Tcl dev package. If the library is not
+// found by the bridge's default search, set AETHER_TCL_SONAME to its exact soname or
+// path. Prints "hello from tcl, hosted by aether".
 //
-//   aeb-ctr hosttcl/.build.ae   →   "hello from tcl, hosted by aether"
-//
-// No build flags (aether dlopen sweep): `ae build` auto-links the bridge .a
-// from the import; the bridge dlopens libtcl at runtime. aeb-ctr probes the
-// HOST's tcl soname and passes AETHER_TCL_SONAME (the bridge's loading-order
-// step 1) — a runtime env var, not a link flag.
+//   cd hosttcl && aeb .build.ae
 
-import contrib.host.tcl
+import tcl
 
 main() {
-    tcl.run("puts \"hello from tcl, hosted by aether\"")
+    rc = tcl.run("puts \"hello from tcl, hosted by aether\"")
     tcl.finalize()
+    if rc != 0 { exit(1) }
 }

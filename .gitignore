@@ -1,2 +1,4 @@
 # aeb build outputs from the readiness check
 readiness/aebproj/target/
+readiness/*/target/
+readiness/target-hello

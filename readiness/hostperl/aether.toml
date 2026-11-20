@@ -1,13 +1,16 @@
-# Build config for the host-Perl readiness target.
+# The perl bridge is no longer in the Aether release: it lives in the
+# aether-guest-languages package, added with `ae add
+# github.com/aether-lang-dev/aether-guest-languages` and used here as
+# `import perl`. The package has no tagged releases, so the dependency is its
+# default branch, pinned by the hash of the tree below; if main has moved on and
+# the fetch fails the hash check, run `ae add` again to re-pin.
 #
-# Intentionally empty. The Perl bridge dlopens libperl at runtime (no -lperl on
-# the link line), and `ae build` links the in-tree bridge .a (libaether_host_perl.a)
-# automatically whenever the source imports contrib.host.perl — the import is the
-# trigger. So this target needs NO cflags and NO link_flags.
-#
-# aeb-ctr probes the HOST's perl and passes AETHER_PERL_SONAME (the bridge's
-# runtime loading-order step 1) — an env var the bridge reads at runtime, not a
-# build flag, so it does not belong here.
-#
-# See ../../../aether/contrib/host/perl/README.md and the CHANGELOG dlopen-sweep
-# entry.
+# No link flags: the bridge is compiled into the program (its @source) and loads
+# the machine's perl library at run time, so a machine needs the interpreter's
+# runtime library, not its dev package.
+
+[dependencies]
+"github.com/aether-lang-dev/aether-guest-languages" = "latest"
+
+[dependency-hashes]
+"github.com/aether-lang-dev/aether-guest-languages" = "sha256-3b161cd6882bbc515e9891f536e17debc6d909d51ce867ec5c50548d699e6d03"

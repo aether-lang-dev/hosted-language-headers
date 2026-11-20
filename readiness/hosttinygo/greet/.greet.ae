@@ -1,13 +1,16 @@
-// The TinyGo sidecar node: compiles greet.go → libgreet.so via
-// aether.tinygo_lib. Output lands at target/build/hosttinygo/lib/libgreet.so.
-// The program_test in .build.ae dep()s this so it's built first.
-import build
+// The Go library node: aether.tinygo_lib compiles greet.go to a c-shared
+// library, libgreet.so. The name says tinygo, but aeb builds it with the
+// standard Go toolchain (`go build -buildmode=c-shared`, cgo and a C compiler
+// needed), because TinyGo's c-shared mode supports only wasm. The output lands
+// in target/build/hosttinygo/greet/lib/ and hosttinygo.ae loads it by that path.
+import bldr
 import aether
 
-main() {
-    b = build.start()
-    aether.tinygo_lib(b) {
-        go_source("greet.go")
-        output("libgreet.so")
+aeb(cap) {
+    bldr.build() {
+        aether.tinygo_lib() {
+            go_source("greet.go")
+            output("libgreet.so")
+        }
     }
 }

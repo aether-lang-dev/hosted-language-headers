@@ -1,21 +1,17 @@
-// Readiness — Aether hosting Ruby. Same proof as hostpy, for the ruby bridge:
-// COMPILES against the ruby C-bridge headers (in the toolchain container, from
-// the --with=ruby apt ruby-dev kit) and at runtime dlopens libruby on the HOST.
-// Compile-in-container / execute-on-host, hosting a foreign language.
+// Readiness: an Aether program running Ruby. The ruby bridge comes from the
+// aether-guest-languages package (`import ruby`, see aether.toml). It is
+// compiled into this program and loads the machine's Ruby library at run
+// time, so the program builds with no Ruby dev package. If the library is not
+// found by the bridge's default search, set AETHER_RUBY_SONAME to its exact soname or
+// path. Prints "hello from ruby, hosted by aether".
 //
-//   aeb-ctr hostruby/.build.ae   →   "hello from ruby, hosted by aether"
-//
-// No build flags (aether dlopen sweep, ruby v0.211.0): `ae build` auto-links the
-// bridge .a from the import; the bridge dlopens libruby at runtime. aeb-ctr
-// passes AETHER_RUBY_SONAME (the bridge's loading-order step 1) if exported — a
-// runtime env var, not a link flag.
-//
-// NOTE: ruby's bridge exports ruby_finalize_host (not ruby_finalize), so the
-// finalize call is ruby.finalize_host() — unlike python's ruby.finalize().
+//   cd hostruby && aeb .build.ae
 
-import contrib.host.ruby
+import ruby
 
 main() {
-    ruby.run("puts 'hello from ruby, hosted by aether'")
+    rc = ruby.run("puts 'hello from ruby, hosted by aether'")
+    // Ruby's teardown is finalize_host, not finalize; call it once, last.
     ruby.finalize_host()
+    if rc != 0 { exit(1) }
 }

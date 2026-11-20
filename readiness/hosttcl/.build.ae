@@ -1,21 +1,14 @@
-// aether.program_test (NOT aether.program): program_test compiles the binary
-// AND RUNS it — which is what makes the hosted Tcl actually execute (and
-// what aeb-ctr's execute-pass replays on the host). aether.program only
-// compiles, so its main() never runs → the Tcl never fires.
-//
-// NO link_flag/extra_source setters here on purpose — those force aeb's manual
-// aetherc+gcc path, which does NOT read aether.toml and does NOT do the
-// import-driven bridge auto-link. Bare keeps the `ae build` shell-out, which
-// links libaether_host_tcl.a automatically because hosttcl.ae imports contrib.host.tcl.
-// aether.toml is empty — the bridge dlopens libtcl at runtime (aether dlopen
-// sweep), so no link flags. The program exits 0 (Tcl prints, then returns)
-// so program_test counts it a PASS.
-import build
+// Builds hosttcl.ae and runs it. aether.program_test compiles the program and then
+// runs the binary, which is what makes the hosted interpreter execute and
+// print; aether.program would compile it and stop. The bridge is the tcl
+// module of the aether-guest-languages package, a dependency in aether.toml.
+import bldr
 import aether
 
-main() {
-    b = build.start()
-    aether.program_test(b) {
-        source("hosttcl.ae")
+aeb(cap) {
+    bldr.build() {
+        aether.program_test() {
+            source("hosttcl.ae")
+        }
     }
 }

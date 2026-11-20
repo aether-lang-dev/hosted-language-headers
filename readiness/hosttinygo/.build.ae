@@ -1,17 +1,17 @@
-// aether.program_test compiles AND runs hosttinygo.ae. It dep()s the
-// greet/.greet.ae tinygo_lib node (in its OWN subdir — two builder nodes can't
-// share one module dir, since aeb keys the module on the directory) so
-// libgreet.so is built (in-container, Phase 1) before this binary runs (on-host,
-// Phase 2) and tinygo.load()s it. Empty aether.toml — the bridge .a
-// (libaether_host_tinygo.a) auto-links from the `import contrib.host.tinygo` in
-// hosttinygo.ae. See aeb/docs/host-tinygo-sidecar.md.
-import build
+// Builds hosttinygo.ae and runs it. The program loads a Go library at run time,
+// so this node dep()s the greet/ node first: that one compiles greet.go to
+// libgreet.so, and this one then compiles and runs the program that loads it.
+// (The library gets its own subdirectory because aeb keys a module on its
+// directory, so two builder nodes cannot share one.) aether.program_test
+// compiles the program and runs it, which is what makes the Go functions run.
+import bldr
 import aether
 
-main() {
-    b = build.start()
-    build.dep(b, "hosttinygo/greet/.greet.ae")
-    aether.program_test(b) {
-        source("hosttinygo.ae")
+aeb(cap) {
+    bldr.build() {
+        dep("greet/.greet.ae")
+        aether.program_test() {
+            source("hosttinygo.ae")
+        }
     }
 }

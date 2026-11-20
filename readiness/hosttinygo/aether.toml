@@ -1,21 +1,16 @@
-# Build config for the host-TinyGo readiness target.
+# The Go bridge is no longer in the Aether release: it lives in the
+# aether-guest-languages package, added with `ae add
+# github.com/aether-lang-dev/aether-guest-languages` and used here as
+# `import tinygo`. The package has no tagged releases, so the dependency is its
+# default branch, pinned by the hash of the tree below; if main has moved on and
+# the fetch fails the hash check, run `ae add` again to re-pin.
 #
-# `ae build` auto-links the in-tree bridge .a (libaether_host_tinygo.a) because
-# hosttinygo.ae imports contrib.host.tinygo — the import is the trigger.
-#
-# No [build] link_flags needed. The tinygo bridge .a is the ONLY host bridge with
-# a link-time dependency of its own — it compiles tinygo_call_dynamic under
-# AETHER_HAS_LIBFFI, so the .a has unresolved ffi_* symbols. As of aether
-# v0.217.0, the import-driven auto-link probes the resolved .a (`nm -u | grep
-# ffi_prep_cif`) and appends `-lffi` itself when the symbol is undefined — so the
-# old `link_flags = "-lffi"` workaround here is no longer required and has been
-# removed. (Was: ctr_notes.md Finding 2.)
+# No link flags and no soname: the library is loaded by the path
+# hosttinygo.ae gives to tinygo.load, and the bridge is compiled into the
+# program (its @source), so the machine needs no Go toolchain to run it.
 
-# Unlike the six interpreter bridges, tinygo needs NO AETHER_*_SONAME: the
-# sidecar libgreet.so is loaded by explicit PATH (tinygo.load("...")), not by
-# soname discovery. The sidecar is built with standard `go build
-# -buildmode=c-shared` in the container (Phase 1, via aether.tinygo_lib in
-# greet/); the .so rides the mount to the host where the Aether binary dlopens it
-# (Phase 2). The host needs no Go toolchain.
-#
-# See ../../../aether/contrib/host/tinygo/README.md.
+[dependencies]
+"github.com/aether-lang-dev/aether-guest-languages" = "latest"
+
+[dependency-hashes]
+"github.com/aether-lang-dev/aether-guest-languages" = "sha256-3b161cd6882bbc515e9891f536e17debc6d909d51ce867ec5c50548d699e6d03"

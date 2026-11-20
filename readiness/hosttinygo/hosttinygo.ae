@@ -1,31 +1,25 @@
-// Readiness — Aether hosting Go (a native c-shared .so sidecar). The user's Go
-// is compiled to libgreet.so and loaded at runtime; its exported Go functions
-// are called directly (no IPC, same address space). See
-// aeb/docs/host-tinygo-sidecar.md.
+// Readiness: an Aether program calling into Go. The Go library is compiled to
+// libgreet.so by the greet/ node (see .build.ae) and loaded here by path; its
+// exported functions are called directly, in this process, with no IPC. The
+// bridge comes from the aether-guest-languages package (`import tinygo`, see
+// aether.toml). Prints "hello from tinygo, hosted by aether" and the two
+// results, Add(2,40)=42 and Answer()=42.
 //
-//   aeb-ctr hosttinygo/.build.ae   →   "hello from tinygo, hosted by aether"
-//                                       Add(2,40)=42  Answer()=42
+//   cd hosttinygo && aeb .build.ae
 //
-// Phase 1 (in aeb-toolchain-tinygo:slim): `go build -buildmode=c-shared` compiles
-//   greet.go → libgreet.so (the aether.tinygo_lib node in greet/) AND ae compiles
-//   this .ae → the test binary. (Standard `go`, not `tinygo` — TinyGo's c-shared
-//   is wasm-only; native sidecars need the standard Go toolchain.)
-// Phase 2 (on host): this binary runs and tinygo.load()s the sidecar .so that
-//   Phase 1 left on the mount. The host needs no Go toolchain.
-//
-// The .so path is the deterministic build-tree location for the greet/ module's
-// tinygo_lib output: target/build/hosttinygo/greet/lib/libgreet.so, relative to
-// the repo root (aeb-ctr runs the orchestrator with cwd = root in Phase 2).
+// The path below is where aeb puts the greet/ node's output, relative to the
+// directory the test runs in (the project root, hosttinygo/). A failed load
+// exits 1, so program_test reports it instead of passing.
 
-import contrib.host.tinygo
+import tinygo
 
 main() {
-    so = "target/build/hosttinygo/greet/lib/libgreet.so"
+    so = "target/greet/greet/lib/libgreet.so"
 
     handle, err = tinygo.load(so)
     if handle == null {
         println("FAIL: tinygo.load(${so}): ${err}")
-        return
+        exit(1)
     }
 
     answer = tinygo.call_int_void(handle, "Answer")
@@ -33,6 +27,7 @@ main() {
 
     println("hello from tinygo, hosted by aether")
     println("Add(2,40)=${sum}  Answer()=${answer}")
+    if sum != 42 || answer != 42 { exit(1) }
 
     tinygo.unload(handle)
 }
