@@ -1,5 +1,10 @@
 # aeb's lua, python and ruby builder modules shadow the guest-language bridges
 
+**RESOLVED in aeb v0.349** (2026-11-21): program nodes are compiled without aeb's
+`lib/` on their search path; aeb's reply is `asks/REPLY-lib-shadows-guest-language-bridges.md`
+in the aeb repo. Checked here: hostpy, hostlua and hostruby fail with the E0301
+below on v0.348 and pass as aeb nodes on v0.349 (cachyos, Aether 0.931.0).
+
 Found 2026-11-20 on Aether 0.931.0 with aeb v0.348 (Linux x86_64).
 
 ## What happens
@@ -56,6 +61,4 @@ Any one of: aeb's builder modules take names that cannot clash with a language
 (`luabuild`, `pythonbuild`, ...), or aeb passes its lib after the project's
 dependencies, or a node can say that its program imports a package's module in
 preference to aeb's. The first is a rename across every aeb SDK and its users;
-the last is the narrowest. Until then
-`hosted-language-headers/readiness/run.sh` builds hostpy, hostlua and hostruby
-with `ae build` instead of as aeb nodes.
+the last is the narrowest. (aeb took the narrowest. Until then readiness/run.sh built the three with `ae build`; it no longer does.)

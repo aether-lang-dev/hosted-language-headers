@@ -2,19 +2,20 @@
 
 Run them all with `sh run.sh` (or name some: `sh run.sh hostperl hosttcl`). It
 needs `ae` and `aeb` on PATH, and for the `host*` probes the guest languages'
-runtime libraries on the machine (a Go toolchain too for `hosttinygo`). Each
+runtime libraries on the machine (a Go toolchain too for `hosttinygo`) and aeb v0.349 or later. Each
 probe's output is checked, so a probe that compiles but whose guest language
 does not run fails.
 
-**Verified on Aether 0.931.0 with aeb v0.348, 2026-11-20, on `cachyos` (Linux
+**Verified on Aether 0.931.0 with aeb v0.349, 2026-11-21, on `cachyos` (Linux
 x86_64, Python 3.14.10, Lua 5.5.1, Perl 5.44.0, Ruby 3.4.12, Tcl 8.6.16,
 Duktape 2.7, Go from the distribution): `sh run.sh` passes all ten probes.**
-The same probes except the three `aeb` ones for hostperl, hostduktape and
-hosttcl ran on macOS arm64 (Aether 0.931.0, aeb from main at v0.347 plus 26
-commits, not v0.348) and passed, with the bridge package taken from a local
+The probes also ran on macOS arm64 on 2026-11-20 (Aether 0.931.0, aeb from main at v0.347 plus 26
+commits, hostpy, hostlua and hostruby as `ae build` runs, since that aeb was
+before v0.349) and passed, with the bridge package taken from a local
 checkout instead of the pinned tree, and Python 3.13 from Homebrew (the system
 Python is 3.9, which the bridge does not support). `hosttinygo` and `aebproj`
-also passed there. Nothing here was run on FreeBSD, NetBSD, OpenBSD or Windows.
+also passed there. aeb v0.348 on cachyos failed hostpy, hostlua and hostruby with
+E0301 (see below); v0.349 passes them. Nothing here was run on FreeBSD, NetBSD, OpenBSD or Windows.
 
 ## Test 1: the bare toolchain (`hello.ae`)
 
@@ -63,9 +64,9 @@ re-pin.
 
 | Probe | Bridge, on Aether 0.931.0 | Left `contrib/host` in | How it runs here | Greeting |
 |---|---|---|---|---|
-| `hostpy` | `import python` | 0.887.0 | `ae build`, by `run.sh` | hello from python, hosted by aether |
-| `hostlua` | `import lua` | 0.880.0 | `ae build`, by `run.sh` | hello from lua, hosted by aether |
-| `hostruby` | `import ruby` | 0.893.0 | `ae build`, by `run.sh` | hello from ruby, hosted by aether |
+| `hostpy` | `import python` | 0.887.0 | aeb node | hello from python, hosted by aether |
+| `hostlua` | `import lua` | 0.880.0 | aeb node | hello from lua, hosted by aether |
+| `hostruby` | `import ruby` | 0.893.0 | aeb node | hello from ruby, hosted by aether |
 | `hostperl` | `import perl` | 0.893.0 | aeb node | hello from perl, hosted by aether |
 | `hostduktape` | `import duktape` | 0.893.0 | aeb node | hello from duktape, hosted by aether |
 | `hosttcl` | `import tcl` | 0.893.0 | aeb node | hello from tcl, hosted by aether |
@@ -74,11 +75,12 @@ re-pin.
 No language is without a bridge on 0.931.0: all seven are in
 aether-guest-languages.
 
-Why three are not aeb nodes: aeb's own `lib/` has builder modules named `lua`,
-`python` and `ruby`, and aeb puts that directory ahead of installed packages, so
-`import lua` in an aeb-built program finds the builder and fails with
-"Undefined function 'lua.run'". `asks/aeb-lib-shadows-guest-language-bridges.md`
-has the repro. Their `.build.ae` files are gone until that is fixed.
+aeb v0.348 could not build hostpy, hostlua and hostruby as nodes: its own `lib/`
+has builder modules named `lua`, `python` and `ruby`, which it put ahead of
+installed packages, so `import lua` failed with "Undefined function 'lua.run'".
+v0.349 compiles program nodes without its `lib/` on the search path, so they
+are nodes like the rest; use v0.349 or later
+(`asks/aeb-lib-shadows-guest-language-bridges.md`, resolved).
 
 `hosttinygo` is two nodes: `greet/` compiles `greet.go` into `libgreet.so` with
 `aether.tinygo_lib` (which runs the standard `go build -buildmode=c-shared`; the

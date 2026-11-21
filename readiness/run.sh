@@ -7,10 +7,8 @@
 #   sh run.sh            run them all
 #   sh run.sh hostperl   run the named ones
 #
-# hostpy, hostlua and hostruby are built with `ae build` and run by this script,
-# not as aeb nodes: aeb puts its own lua, python and ruby builder modules on the
-# compile path ahead of the guest-language bridges of the same names, so an aeb
-# node cannot `import lua` (asks/aeb-lib-shadows-guest-language-bridges.md).
+# aeb v0.349 or later is needed: v0.348 put its own lua, python and ruby builder
+# modules ahead of the bridges of those names (asks/aeb-lib-shadows-guest-language-bridges.md).
 cd "$(dirname "$0")" || exit 1
 
 # libperl is not on the loader's default path on most systems (it lives under
@@ -72,24 +70,16 @@ probe_aeb() {
     expect "$n" "$log" "$want"
 }
 
-# direct: build with ae build, run the binary
-probe_direct() {
-    n=$1; want=$2
-    mkdir -p "$n/target"
-    out=$(cd "$n" && ae build "$n.ae" -o "target/$n" 2>&1 && "./target/$n") || { echo "$out" | tail -20; bad "$n (ae build)"; return; }
-    expect "$n" "$out" "$want"
-}
-
 sel="${*:-all}"
 has() { for a in $sel; do [ "$a" = all ] || [ "$a" = "$1" ] && return 0; done; return 1; }
 
 has hello      && probe_hello
 has aebproj    && probe_aebproj
-has hostpy     && probe_direct hostpy     "hello from python, hosted by aether"
-has hostlua    && probe_direct hostlua    "hello from lua, hosted by aether"
-has hostruby   && probe_direct hostruby   "hello from ruby, hosted by aether"
-has hostperl   && probe_aeb hostperl      "hello from perl, hosted by aether"
-has hostduktape && probe_aeb hostduktape  "hello from duktape, hosted by aether"
-has hosttcl    && probe_aeb hosttcl       "hello from tcl, hosted by aether"
-has hosttinygo && probe_aeb hosttinygo    "Add(2,40)=42  Answer()=42"
+has hostpy && probe_aeb hostpy "hello from python, hosted by aether"
+has hostlua && probe_aeb hostlua "hello from lua, hosted by aether"
+has hostruby && probe_aeb hostruby "hello from ruby, hosted by aether"
+has hostperl && probe_aeb hostperl "hello from perl, hosted by aether"
+has hostduktape && probe_aeb hostduktape "hello from duktape, hosted by aether"
+has hosttcl && probe_aeb hosttcl "hello from tcl, hosted by aether"
+has hosttinygo && probe_aeb hosttinygo "Add(2,40)=42  Answer()=42"
 exit $fail

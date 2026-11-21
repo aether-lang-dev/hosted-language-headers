@@ -1,0 +1,14 @@
+// Builds hostruby.ae and runs it. aether.program_test compiles the program and then
+// runs the binary, which is what makes the hosted interpreter execute and
+// print; aether.program would compile it and stop. The bridge is the ruby
+// module of the aether-guest-languages package, a dependency in aether.toml.
+import bldr
+import aether
+
+aeb(cap) {
+    bldr.build() {
+        aether.program_test() {
+            source("hostruby.ae")
+        }
+    }
+}
