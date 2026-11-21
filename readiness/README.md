@@ -56,7 +56,7 @@ and each probe's `aether.toml` lists it as a dependency (`ae add
 github.com/aether-lang-dev/aether-guest-languages`), imported as `import lua`
 and so on. That repository has no tagged releases, so the dependency is its
 main branch pinned by the hash of the tree installed on 2026-11-20 (commit
-`9212414` and what `ae add` fetched after it). When main has moved, `ae` stops
+`9212414`). When main has moved, `ae` stops
 with "installed as another tree than aether.toml pins": run `ae add
 github.com/aether-lang-dev/aether-guest-languages` in the probe's directory to
 re-pin.
