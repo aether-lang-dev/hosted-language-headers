@@ -7,7 +7,7 @@ can build and run those bridges (see `readiness/README.md`).
 
 ## Who uses the headers today: nobody we can find
 
-Checked 2026-11-20 against Aether 0.931.0 and the sibling repositories in the
+Checked 2026-11-21 against Aether 0.933.0 and the sibling repositories in the
 family:
 
 - The [`aether-builder` image](https://github.com/aether-lang-dev/aether/tree/main/tools/docker)

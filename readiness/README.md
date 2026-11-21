@@ -6,7 +6,7 @@ runtime libraries on the machine (a Go toolchain too for `hosttinygo`) and aeb v
 probe's output is checked, so a probe that compiles but whose guest language
 does not run fails.
 
-**Verified on Aether 0.931.0 with aeb v0.349, 2026-11-21, on `cachyos` (Linux
+**Verified on Aether 0.933.0 with aeb v0.349, 2026-11-21 (and on 0.931.0 earlier that day), on `cachyos` (Linux
 x86_64, Python 3.14.10, Lua 5.5.1, Perl 5.44.0, Ruby 3.4.12, Tcl 8.6.16,
 Duktape 2.7, Go from the distribution): `sh run.sh` passes all ten probes.**
 The probes also ran on macOS arm64 on 2026-11-20 (Aether 0.931.0, aeb from main at v0.347 plus 26
