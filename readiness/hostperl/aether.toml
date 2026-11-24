@@ -13,4 +13,4 @@
 "github.com/aether-lang-dev/aether-guest-languages" = "latest"
 
 [dependency-hashes]
-"github.com/aether-lang-dev/aether-guest-languages" = "sha256-389cdbd902cb41ed3863eee73e539e7634ff5dddd9e5eac6863fbf15c2cd7dfa"
+"github.com/aether-lang-dev/aether-guest-languages" = "sha256-88597efffa62868359964bc8418eb53cfc6b52e629fe739296873c3ffea7a20d"
