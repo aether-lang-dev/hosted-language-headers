@@ -6,7 +6,7 @@ runtime libraries on the machine (a Go toolchain too for `hosttinygo`) and aeb v
 probe's output is checked, so a probe that compiles but whose guest language
 does not run fails.
 
-**Verified on Aether 0.946.0 with aeb as installed on cachyos (a dev build, 4c7c4e2d, installed 2026-11-21), 2026-11-25 (and on 0.945.0, 0.944.0, 0.941.0, 0.939.0, 0.936.0, 0.935.0 and 0.933.0 before), on `cachyos` (Linux
+**Verified on Aether 0.949.0 with aeb as installed on cachyos (a dev build, 4c7c4e2d, installed 2026-11-21), 2026-11-28 (and on 0.946.0, 0.945.0, 0.944.0, 0.941.0, 0.939.0, 0.936.0, 0.935.0 and 0.933.0 before), on `cachyos` (Linux
 x86_64, Python 3.14.10, Lua 5.5.1, Perl 5.44.0, Ruby 3.4.12, Tcl 8.6.16,
 Duktape 2.7, Go from the distribution): `sh run.sh` passes all ten probes.**
 On `ae-x64` (Ubuntu 22.04 x86_64, 2026-11-24, 0.941.0 and aeb v0.349) hello, aebproj, hostpy, hostperl, hostduktape, hosttcl and hosttinygo pass; hostlua and hostruby fail there for want of a runtime the bridge can load (the distribution has only Lua 5.3, and run.sh's derived libruby path does not exist), not for anything in the toolchain.
@@ -57,8 +57,8 @@ The bridges are not in the Aether release any more: they live in
 and each probe's `aether.toml` lists it as a dependency (`ae add
 github.com/aether-lang-dev/aether-guest-languages`), imported as `import lua`
 and so on. That repository has no tagged releases, so the dependency is its
-main branch pinned by the hash of the tree installed on 2026-11-20 (commit
-`9212414`). When main has moved, `ae` stops
+main branch pinned by the hash of the tree installed on 2026-11-28 (commit
+`62a8150`). When main has moved, `ae` stops
 with "installed as another tree than aether.toml pins": run `ae add
 github.com/aether-lang-dev/aether-guest-languages` in the probe's directory to
 re-pin.
